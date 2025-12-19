@@ -3,6 +3,15 @@ import './App.css'
 import { DiceSelector } from './Dice'
 import { DiceModifiersPanel } from './DiceModifierPanel'
 
+function smartFloor(num: number) {
+  const epsilon = 1e-6; // threshold for "close enough" to the next integer
+  const floored = Math.floor(num);
+  if (num - floored > 1 - epsilon) {
+    return floored + 1; // round up if very close
+  }
+  return floored; // otherwise just floor
+}
+
 function App() {
   const [dice, setDice] = useState<number[]>([0, 0, 0])
   const [modifiers, setModifiers] = useState<
@@ -19,7 +28,7 @@ function App() {
 
   // Calculate totals
   const diceRollTotal = dice.reduce((a, b) => a + b, 0)
-  const finalDiceAdder = modifiers.reduce(
+  const variableDiceTotal = modifiers.reduce(
     (total, m) => total + m.diceTotal,
     0
   )
@@ -27,11 +36,12 @@ function App() {
   // Final multiplier = sum of all multipliers
   const finalMultiplier = modifiers.reduce(
     (acc, m) => acc + m.multiplier,
-    1
+    0
   )
 
   // Floor final value
-  const diceTotal = Math.floor(diceRollTotal * finalMultiplier + finalDiceAdder)
+  const diceTotalBeforeFlooring = (diceRollTotal + variableDiceTotal) * finalMultiplier;
+  const diceTotal = smartFloor(diceTotalBeforeFlooring);
 
   return (
     <div className="flex gap-6 p-6">
@@ -67,12 +77,19 @@ function App() {
         <div>
           <span className="font-medium">Base Dice Total:</span> {diceRollTotal}
         </div>
+
+        <div>
+          <span className="font-medium">Variable Dice Total:</span> {variableDiceTotal}
+        </div>
+
         <div>
           <span className="font-medium">Final Multiplier:</span> {finalMultiplier.toFixed(2)}
         </div>
+
         <div>
-          <span className="font-medium">Final Constant:</span> {finalDiceAdder}
+          <span className="font-medium">Before Flooring</span> {diceTotalBeforeFlooring}
         </div>
+
         <div>
           <span className="font-medium">Final Value:</span> {diceTotal}
         </div>
