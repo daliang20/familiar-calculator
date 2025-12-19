@@ -87,7 +87,7 @@ function App() {
         </div>
 
         <div>
-          <span className="font-medium">Before Flooring</span> {diceTotalBeforeFlooring}
+          <span className="font-medium">Before Flooring</span> {diceTotalBeforeFlooring.toFixed(2)}
         </div>
 
         <div>
