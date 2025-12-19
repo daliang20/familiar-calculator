@@ -10,5 +10,6 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     }
-  }
+  },
+  base: 'familiar-calculator', // <- replace REPO with your GitHub repo name
 })
