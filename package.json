@@ -11,7 +11,7 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
-  "homepage": "https://dliang.github.io/familiar-calculator",
+  "homepage": "https://dliang20.github.io/familiar-calculator",
   "dependencies": {
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-select": "^2.2.6",
