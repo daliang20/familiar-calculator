@@ -3,6 +3,7 @@ import { DiceModifier } from "./DiceModifier"
 type Modifier = {
     multiplier: number
     diceTotal: number
+    enabled: boolean
 }
 
 type DiceModifiersPanelProps = {
@@ -15,7 +16,7 @@ export function DiceModifiersPanel({
     setModifiers,
 }: DiceModifiersPanelProps) {
     const addModifier = () => {
-        setModifiers([...modifiers, { multiplier: 1.0, diceTotal: 0 }])
+        setModifiers([...modifiers, { multiplier: 0, diceTotal: 0, enabled: true }])
     }
 
     const updateModifier = (index: number, value: Modifier) => {

@@ -15,7 +15,7 @@ function smartFloor(num: number) {
 function App() {
   const [dice, setDice] = useState<number[]>([0, 0, 0])
   const [modifiers, setModifiers] = useState<
-    { multiplier: number; diceTotal: number }[]
+    { multiplier: number; diceTotal: number, enabled: boolean }[]
   >([])
 
   const setDie = (index: number, value: number) => {
@@ -29,13 +29,13 @@ function App() {
   // Calculate totals
   const diceRollTotal = dice.reduce((a, b) => a + b, 0)
   const variableDiceTotal = modifiers.reduce(
-    (total, m) => total + m.diceTotal,
+    (total, m) => m.enabled ? total + m.diceTotal : total,
     0
   )
 
   // Final multiplier = sum of all multipliers
   const finalMultiplier = modifiers.reduce(
-    (acc, m) => acc + m.multiplier,
+    (acc, m) => m.enabled ? acc + m.multiplier : acc,
     0
   )
 
@@ -87,7 +87,7 @@ function App() {
         </div>
 
         <div>
-          <span className="font-medium">Before Flooring</span> {diceTotalBeforeFlooring.toFixed(2)}
+          <span className="font-medium">Before Flooring</span> {diceTotalBeforeFlooring.toFixed(4)}
         </div>
 
         <div>
