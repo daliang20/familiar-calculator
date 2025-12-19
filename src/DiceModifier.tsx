@@ -30,21 +30,6 @@ export function DiceModifier({ value, onChange, onRemove }: DiceModifierProps) {
             </div>
 
             <div className="flex items-end gap-4">
-                {/* Multiplier */}
-                <div className="flex flex-col gap-1">
-                    <Label>× Multiplier</Label>
-                    <Input
-                        type="number"
-                        step="0.1"
-                        value={value.multiplier}
-                        onChange={(e) =>
-                            onChange({ ...value, multiplier: Number(e.target.value) })
-                        }
-                        className="w-[140px]"
-                        disabled={!value.enabled}
-                    />
-                </div>
-
                 {/* Dice Total Modifier */}
                 <div className="flex flex-col gap-1">
                     <Label>+ Dice Total</Label>
@@ -54,6 +39,21 @@ export function DiceModifier({ value, onChange, onRemove }: DiceModifierProps) {
                         value={value.diceTotal}
                         onChange={(e) =>
                             onChange({ ...value, diceTotal: Number(e.target.value) })
+                        }
+                        className="w-[140px]"
+                        disabled={!value.enabled}
+                    />
+                </div>
+
+                {/* Multiplier */}
+                <div className="flex flex-col gap-1">
+                    <Label>× Multiplier</Label>
+                    <Input
+                        type="number"
+                        step="0.1"
+                        value={value.multiplier}
+                        onChange={(e) =>
+                            onChange({ ...value, multiplier: Number(e.target.value) })
                         }
                         className="w-[140px]"
                         disabled={!value.enabled}
