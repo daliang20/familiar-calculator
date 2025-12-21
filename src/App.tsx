@@ -95,7 +95,7 @@ function App() {
             <DiceSelector
               key={i}
               number={1}
-              label={labels[0]}
+              label={labels[i]}
               value={value}
               onChange={newValue => {
                 const dice = [...state.dice]
