@@ -39,6 +39,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             suffix,
             prefix,
             value: controlledValue,
+            displayButtons,
             ...props
         },
         ref
@@ -114,6 +115,8 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             }
         };
 
+        const className = !!!displayButtons ? "" : "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none rounded-r-none relative";
+
         return (
             <div className="flex items-center">
                 <NumericFormat
@@ -131,11 +134,12 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
                     prefix={prefix}
                     customInput={Input}
                     placeholder={placeholder}
+                    className={className}
                     //className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none rounded-r-none relative"
                     getInputRef={ref}
                     {...props}
                 />
-                {props.displayButtons ?? <div className="flex flex-col">
+                {!!!displayButtons ? null : <div className="flex flex-col">
                     <Button
                         aria-label="Increase value"
                         className="px-2 h-5 rounded-l-none rounded-br-none border-input border-l-0 border-b-[0.5px] focus-visible:relative"

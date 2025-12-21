@@ -1,5 +1,6 @@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { NumberInput } from "./NumericInput"
 
 type DiceModifierValue = {
     multiplier: number
@@ -33,12 +34,12 @@ export function DiceModifier({ value, onChange, onRemove }: DiceModifierProps) {
                 {/* Dice Total Modifier */}
                 <div className="flex flex-col gap-1">
                     <Label>+ Dice Total</Label>
-                    <Input
-                        type="number"
-                        step="1"
+                    <NumberInput
+                        displayButtons={true}
+                        stepper={1}
                         value={value.diceTotal}
-                        onChange={(e) =>
-                            onChange({ ...value, diceTotal: Number(e.target.value) })
+                        onValueChange={(e) =>
+                            onChange({ ...value, diceTotal: Number(e ?? 0) })
                         }
                         className="w-[140px]"
                         disabled={!value.enabled}
@@ -48,12 +49,17 @@ export function DiceModifier({ value, onChange, onRemove }: DiceModifierProps) {
                 {/* Multiplier */}
                 <div className="flex flex-col gap-1">
                     <Label>× Multiplier</Label>
-                    <Input
-                        type="number"
-                        step="0.1"
+                    <NumberInput
+                        displayButtons={true}
+                        min={0}
+                        decimalScale={3}
+                        stepper={0.2}
                         value={value.multiplier}
-                        onChange={(e) =>
-                            onChange({ ...value, multiplier: Number(e.target.value) })
+                        onValueChange={(e) => {
+                            if (e) {
+                                onChange({ ...value, multiplier: Number(e ?? 0) })
+                            }
+                        }
                         }
                         className="w-[140px]"
                         disabled={!value.enabled}

@@ -14,30 +14,51 @@ function smartFloor(num: number) {
   return floored; // otherwise just floor
 }
 
-function App() {
-  const [dice, setDice] = useState<number[]>([1, 1, 1])
-  const [dice1, setDice1] = useState<number>(1);
-  const [dice2, setDice2] = useState<number>(1);
-  const [dice3, setDice3] = useState<number>(1);
-  const [total, setTotal] = useState<number>(0);
+function distributeTotal(total: number, count: number): number[] {
+  const base = Math.floor(total / count)
+  let remainder = total % count
 
-  const [manualTotalInput, setManualTotalInput] = useState(false);
-
-
-  useEffect(() => {
-    const diceRollTotal = [dice1, dice2, dice3].reduce((a, b) => a + b, 0);
-    setTotal(diceRollTotal);
-  }, [dice1, dice2, dice3]);
-
-  useEffect(() => {
-    if (manualTotalInput) {
-      setDice1(1);
-      setDice2(1);
-      setDice3(1);
+  return Array.from({ length: count }, () => {
+    if (remainder > 0) {
+      remainder--
+      return base + 1
     }
-  }, [total]);
+    return base
+  })
+}
 
+type DiceState = {
+  dice: number[]   // e.g. [2, 5, 3]
+  total: number
+  source: "dice" | "total"
+}
 
+function App() {
+  const [state, setState] = useState<DiceState>({
+    dice: [1, 1, 1],
+    total: 3,
+    source: "dice",
+  })
+
+  // When dice change, recompute total
+  useEffect(() => {
+    if (state.source === "dice") {
+      const sum = state.dice.reduce((a, b) => a + b, 0)
+      if (sum !== state.total) {
+        setState(s => ({ ...s, total: sum }))
+      }
+    }
+  }, [state.dice, state.source])
+
+  // When total changes, reconcile into dice
+  useEffect(() => {
+    if (state.source === "total") {
+      setState(s => ({
+        ...s,
+        dice: distributeTotal(s.total, s.dice.length),
+      }))
+    }
+  }, [state.total, state.source])
 
   const [modifiers, setModifiers] = useState<
     { multiplier: number; diceTotal: number, enabled: boolean }[]
@@ -60,11 +81,8 @@ function App() {
 
   const finalMultiplier = multiplier == 0 ? 1 : multiplier;
 
-
-
-
   // Floor final value
-  const diceTotalBeforeFlooring = (total + variableDiceTotal) * finalMultiplier;
+  const diceTotalBeforeFlooring = (state.total + variableDiceTotal) * finalMultiplier;
   const diceTotal = smartFloor(diceTotalBeforeFlooring);
 
   return (
@@ -73,34 +91,26 @@ function App() {
       <div className="flex flex-col gap-6 flex-1">
         {/* Dice selectors */}
         <div className="flex gap-4">
-          <DiceSelector
-            number={1}
-            label={labels[0]}
-            value={dice1}
-            onChange={(v) => {
-              setDice1(v);
-              setManualTotalInput(false);
-            }}
-          />
-          <DiceSelector
-            number={2}
-            label={labels[1]}
-            value={dice2}
-            onChange={(v) => {
-              setDice2(v);
-              setManualTotalInput(false);
-            }}
-          />
+          {state.dice.map((value, i) => (
+            <DiceSelector
+              key={i}
+              number={1}
+              label={labels[0]}
+              value={value}
+              onChange={newValue => {
+                const dice = [...state.dice]
+                if (newValue) {
+                  dice[i] = Number(newValue)
+                  setState({
+                    dice,
+                    total: state.total,
+                    source: "dice",
+                  })
+                }
+              }}
+            />
+          ))}
 
-          <DiceSelector
-            number={3}
-            label={labels[2]}
-            value={dice2}
-            onChange={(v) => {
-              setDice3(v);
-              setManualTotalInput(false);
-            }}
-          />
 
           <Separator orientation='vertical' />
 
@@ -108,7 +118,21 @@ function App() {
             <div className="flex items-center gap-2">
               {"Total"}
             </div>
-            <NumberInput placeholder={"Total"} defaultValue={1} value={total} onValueChange={(v) => { setTotal(v); setManualTotalInput(true); }} displayButtons={false} />
+            <NumberInput
+              placeholder={"Total"}
+              defaultValue={1}
+              value={state.total}
+              onValueChange={(newValue) => {
+                if (newValue) {
+                  setState({
+                    dice: state.dice,
+                    total: Number(newValue),
+                    source: "total",
+                  })
+                }
+              }}
+              displayButtons={false}
+            />
           </div>
 
         </div>
@@ -129,7 +153,7 @@ function App() {
       <div className="flex flex-col gap-4 p-4 border rounded-lg min-w-[180px]">
         <h3 className="text-lg font-medium">Totals</h3>
         <div>
-          <span className="font-medium">Base Dice Total:</span> {total}
+          <span className="font-medium">Base Dice Total:</span> {state.total}
         </div>
 
         <div>
