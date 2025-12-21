@@ -4,6 +4,7 @@ import { DiceSelector } from './Dice'
 import { DiceModifiersPanel } from './DiceModifierPanel'
 import { Separator } from "@/components/ui/separator"
 import { NumberInput } from './NumericInput'
+import { DiceModifiersTable } from './DiceModifierTable'
 
 function smartFloor(num: number) {
   const epsilon = 1e-6; // threshold for "close enough" to the next integer
@@ -119,6 +120,7 @@ function App() {
               {"Total"}
             </div>
             <NumberInput
+              disabled
               placeholder={"Total"}
               defaultValue={1}
               value={state.total}
@@ -138,12 +140,16 @@ function App() {
         </div>
 
         {/* Modifiers panel */}
-        <div>
+        {/* <div>
           <DiceModifiersPanel
             modifiers={modifiers}
             setModifiers={setModifiers}
           />
-        </div>
+        </div> */}
+
+        <DiceModifiersTable
+          modifiers={modifiers}
+          setModifiers={setModifiers} />
       </div>
 
       {/* Vertical divider */}
