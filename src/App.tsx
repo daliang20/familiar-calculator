@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import { DiceSelector } from './Dice'
 import { DiceModifiersPanel } from './DiceModifierPanel'
+import { Separator } from "@/components/ui/separator"
+import { NumberInput } from './NumericInput'
 
 function smartFloor(num: number) {
   const epsilon = 1e-6; // threshold for "close enough" to the next integer
@@ -13,34 +15,56 @@ function smartFloor(num: number) {
 }
 
 function App() {
-  const [dice, setDice] = useState<number[]>([0, 0, 0])
+  const [dice, setDice] = useState<number[]>([1, 1, 1])
+  const [dice1, setDice1] = useState<number>(1);
+  const [dice2, setDice2] = useState<number>(1);
+  const [dice3, setDice3] = useState<number>(1);
+  const [total, setTotal] = useState<number>(0);
+
+  const [manualTotalInput, setManualTotalInput] = useState(false);
+
+
+  useEffect(() => {
+    const diceRollTotal = [dice1, dice2, dice3].reduce((a, b) => a + b, 0);
+    setTotal(diceRollTotal);
+  }, [dice1, dice2, dice3]);
+
+  useEffect(() => {
+    if (manualTotalInput) {
+      setDice1(1);
+      setDice2(1);
+      setDice3(1);
+    }
+  }, [total]);
+
+
+
   const [modifiers, setModifiers] = useState<
     { multiplier: number; diceTotal: number, enabled: boolean }[]
   >([])
 
-  const setDie = (index: number, value: number) => {
-    setDice((prev) =>
-      prev.map((d, i) => (i === index ? value : d))
-    )
-  }
 
-  const labels = ['Die 1', 'Die 2', 'Die 3']
+  const labels = ['Dice 1', 'Dice 2', 'Dice 3']
 
   // Calculate totals
-  const diceRollTotal = dice.reduce((a, b) => a + b, 0)
   const variableDiceTotal = modifiers.reduce(
     (total, m) => m.enabled ? total + m.diceTotal : total,
     0
   )
 
   // Final multiplier = sum of all multipliers
-  const finalMultiplier = modifiers.reduce(
+  const multiplier = modifiers.reduce(
     (acc, m) => m.enabled ? acc + m.multiplier : acc,
     0
   )
 
+  const finalMultiplier = multiplier == 0 ? 1 : multiplier;
+
+
+
+
   // Floor final value
-  const diceTotalBeforeFlooring = (diceRollTotal + variableDiceTotal) * finalMultiplier;
+  const diceTotalBeforeFlooring = (total + variableDiceTotal) * finalMultiplier;
   const diceTotal = smartFloor(diceTotalBeforeFlooring);
 
   return (
@@ -49,14 +73,44 @@ function App() {
       <div className="flex flex-col gap-6 flex-1">
         {/* Dice selectors */}
         <div className="flex gap-4">
-          {dice.map((value, i) => (
-            <DiceSelector
-              key={i}
-              label={labels[i]}
-              value={value}
-              onChange={(v) => setDie(i, v)}
-            />
-          ))}
+          <DiceSelector
+            number={1}
+            label={labels[0]}
+            value={dice1}
+            onChange={(v) => {
+              setDice1(v);
+              setManualTotalInput(false);
+            }}
+          />
+          <DiceSelector
+            number={2}
+            label={labels[1]}
+            value={dice2}
+            onChange={(v) => {
+              setDice2(v);
+              setManualTotalInput(false);
+            }}
+          />
+
+          <DiceSelector
+            number={3}
+            label={labels[2]}
+            value={dice2}
+            onChange={(v) => {
+              setDice3(v);
+              setManualTotalInput(false);
+            }}
+          />
+
+          <Separator orientation='vertical' />
+
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              {"Total"}
+            </div>
+            <NumberInput placeholder={"Total"} defaultValue={1} value={total} onValueChange={(v) => { setTotal(v); setManualTotalInput(true); }} displayButtons={false} />
+          </div>
+
         </div>
 
         {/* Modifiers panel */}
@@ -75,7 +129,7 @@ function App() {
       <div className="flex flex-col gap-4 p-4 border rounded-lg min-w-[180px]">
         <h3 className="text-lg font-medium">Totals</h3>
         <div>
-          <span className="font-medium">Base Dice Total:</span> {diceRollTotal}
+          <span className="font-medium">Base Dice Total:</span> {total}
         </div>
 
         <div>
