@@ -15,18 +15,18 @@ function smartFloor(num: number) {
   return floored; // otherwise just floor
 }
 
-function distributeTotal(total: number, count: number): number[] {
-  const base = Math.floor(total / count)
-  let remainder = total % count
+// function distributeTotal(total: number, count: number): number[] {
+//   const base = Math.floor(total / count)
+//   let remainder = total % count
 
-  return Array.from({ length: count }, () => {
-    if (remainder > 0) {
-      remainder--
-      return base + 1
-    }
-    return base
-  })
-}
+//   return Array.from({ length: count }, () => {
+//     if (remainder > 0) {
+//       remainder--
+//       return base + 1
+//     }
+//     return base
+//   })
+// }
 
 type DiceState = {
   dice: number[]   // e.g. [2, 5, 3]
