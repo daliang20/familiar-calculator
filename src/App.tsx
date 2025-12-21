@@ -43,6 +43,7 @@ function App() {
 
   // When dice change, recompute total
   useEffect(() => {
+    console.log('dice use effect')
     if (state.source === "dice") {
       const sum = state.dice.reduce((a, b) => a + b, 0)
       if (sum !== state.total) {
@@ -51,15 +52,17 @@ function App() {
     }
   }, [state.dice, state.source])
 
-  // When total changes, reconcile into dice
-  useEffect(() => {
-    if (state.source === "total") {
-      setState(s => ({
-        ...s,
-        dice: distributeTotal(s.total, s.dice.length),
-      }))
-    }
-  }, [state.total, state.source])
+  // // When total changes, reconcile into dice
+  // useEffect(() => {
+  //   console.log(state.source)
+  //   if (state.source === "total") {
+  //     console.log('total use effect')
+  //     setState(s => ({
+  //       ...s,
+  //       dice: distributeTotal(s.total, s.dice.length),
+  //     }))
+  //   }
+  // }, [state.total, state.source])
 
   const [modifiers, setModifiers] = useState<
     { multiplier: number; diceTotal: number, enabled: boolean }[]
@@ -95,10 +98,12 @@ function App() {
           {state.dice.map((value, i) => (
             <DiceSelector
               key={i}
-              number={1}
+              number={i + 1}
               label={labels[i]}
               value={value}
               onChange={newValue => {
+                console.log('dice selector ' + i)
+                console.log(newValue);
                 const dice = [...state.dice]
                 if (newValue) {
                   dice[i] = Number(newValue)
