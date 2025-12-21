@@ -70,8 +70,8 @@ export function DiceModifiersTable({
                                     <TableCell className="text-center">
                                         <Checkbox
                                             checked={modifier.enabled}
-                                            onChange={(e) =>
-                                                updateModifier(index, { enabled: e.target.checked })
+                                            onCheckedChange={(checked) =>
+                                                updateModifier(index, { enabled: checked === true })
                                             }
                                             className="h-4 w-4 accent-primary cursor-pointer"
                                         />
