@@ -2,7 +2,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { NumberInput } from './NumericInput';
 
 
-import { Dice1, Dice2, Dice3, Dice4, Dice5, Dice6, Dices } from 'lucide-react'
+import { Dice1, Dice2, Dice3, Dice4, Dice5, Dice6 } from 'lucide-react'
 
 
 type DiceSelectorProps = {
@@ -15,7 +15,7 @@ type DiceSelectorProps = {
 
 
 export function DiceSelector({
-    number,
+    // number,
     label,
     value,
     onChange,
