@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import { DiceSelector } from './Dice'
-import { DiceModifiersPanel } from './DiceModifierPanel'
+// import { DiceModifiersPanel } from './DiceModifierPanel'
 import { Separator } from "@/components/ui/separator"
 import { NumberInput } from './NumericInput'
 import { DiceModifiersTable } from './DiceModifierTable'
