@@ -15,18 +15,18 @@ function smartFloor(num: number) {
   return floored; // otherwise just floor
 }
 
-// function distributeTotal(total: number, count: number): number[] {
-//   const base = Math.floor(total / count)
-//   let remainder = total % count
+function distributeTotal(total: number, count: number): number[] {
+  const base = Math.floor(total / count)
+  let remainder = total % count
 
-//   return Array.from({ length: count }, () => {
-//     if (remainder > 0) {
-//       remainder--
-//       return base + 1
-//     }
-//     return base
-//   })
-// }
+  return Array.from({ length: count }, () => {
+    if (remainder > 0) {
+      remainder--
+      return base + 1
+    }
+    return base
+  })
+}
 
 type DiceState = {
   dice: number[]   // e.g. [2, 5, 3]
@@ -43,26 +43,20 @@ function App() {
 
   // When dice change, recompute total
   useEffect(() => {
-    console.log('dice use effect')
     if (state.source === "dice") {
       const sum = state.dice.reduce((a, b) => a + b, 0)
       if (sum !== state.total) {
         setState(s => ({ ...s, total: sum }))
       }
-    }
-  }, [state.dice, state.source])
+    } else if (state.source === "total") {
+      // setState(s => ({
+      //   ...s,
+      //   dice: distributeTotal(s.total, s.dice.length),
+      // }))
 
-  // // When total changes, reconcile into dice
-  // useEffect(() => {
-  //   console.log(state.source)
-  //   if (state.source === "total") {
-  //     console.log('total use effect')
-  //     setState(s => ({
-  //       ...s,
-  //       dice: distributeTotal(s.total, s.dice.length),
-  //     }))
-  //   }
-  // }, [state.total, state.source])
+    }
+  }, [state.dice, state.total, state.source])
+
 
   const [modifiers, setModifiers] = useState<
     { multiplier: number; diceTotal: number, enabled: boolean }[]
@@ -125,7 +119,6 @@ function App() {
               {"Total"}
             </div>
             <NumberInput
-              disabled
               placeholder={"Total"}
               defaultValue={1}
               value={state.total}
