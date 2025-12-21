@@ -21,18 +21,18 @@ export function DiceSelector({
     onChange,
 }: DiceSelectorProps) {
 
-    const icon = ((diceNumber: number) => {
-        switch (diceNumber) {
-            case 1:
-                return <Dice1 />
-            case 2:
-                return <Dice2 />
-            case 3:
-                return <Dice3 />
-            default:
-                return <Dices />
-        }
-    })(number);
+    // const icon = ((diceNumber: number) => {
+    //     switch (diceNumber) {
+    //         case 1:
+    //             return <Dice1 />
+    //         case 2:
+    //             return <Dice2 />
+    //         case 3:
+    //             return <Dice3 />
+    //         default:
+    //             return <Dices />
+    //     }
+    // })(number);
 
     return (
         <>
