@@ -16,7 +16,6 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { useEffect, useRef, useState } from "react";
-import { ButtonGroup } from "./components/ui/button-group";
 
 type Modifier = {
   multiplier: number;
@@ -164,7 +163,7 @@ export function DiceModifiersTable({
                   {/* Dice Total */}
                   <TableCell>
                     <InputGroup>
-                      <InputGroupAddon asChild align="inline-end">
+                      <InputGroupAddon align="inline-end">
                         <InputGroupButton
                           variant={"outline"}
                           className="rounded-full"
@@ -218,7 +217,7 @@ export function DiceModifiersTable({
                   {/* Multiplier */}
                   <TableCell>
                     <InputGroup>
-                      <InputGroupAddon asChild align="inline-end">
+                      <InputGroupAddon align="inline-end">
                         <InputGroupButton
                           size="icon-xs"
                           variant="outline"
