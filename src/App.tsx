@@ -7,6 +7,8 @@ import { NumberInput } from "./NumericInput";
 import { DiceModifiersTable } from "./DiceModifierTable";
 
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ModeToggle } from "./components/mode-toggle";
 
 function smartFloor(num: number) {
   const epsilon = 1e-6; // threshold for "close enough" to the next integer
@@ -92,79 +94,88 @@ function App() {
   ];
 
   return (
-    <div className="flex gap-6 p-6">
-      {/* Left panel: dice + modifiers */}
-      <div className="flex flex-col gap-6 flex-1">
-        {/* Dice selectors */}
-        <div className="flex gap-4">
-          {state.dice.map((value, i) => (
-            <DiceSelector
-              key={i}
-              number={i + 1}
-              label={labels[i]}
-              value={value}
-              onChange={(newValue) => {
-                const dice = [...state.dice];
-                if (newValue) {
-                  dice[i] = Number(newValue);
-                  setState({
-                    dice,
-                    total: state.total,
-                    source: "dice",
-                  });
-                }
-              }}
-            />
-          ))}
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <div className="flex gap-6 p-6">
+        {/* Left panel: dice + modifiers */}
+        <div className="flex flex-col gap-6 flex-1">
+          {/* Dice selectors */}
+          <div className="flex gap-4">
+            {state.dice.map((value, i) => (
+              <DiceSelector
+                key={i}
+                number={i + 1}
+                label={labels[i]}
+                value={value}
+                onChange={(newValue) => {
+                  const dice = [...state.dice];
+                  if (newValue) {
+                    dice[i] = Number(newValue);
+                    setState({
+                      dice,
+                      total: state.total,
+                      source: "dice",
+                    });
+                  }
+                }}
+              />
+            ))}
 
-          <Separator orientation="vertical" />
+            <Separator orientation="vertical" />
 
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">{"Total"}</div>
-            <NumberInput
-              placeholder={"Total"}
-              defaultValue={1}
-              value={state.total}
-              onValueChange={(newValue) => {
-                if (newValue) {
-                  setState({
-                    dice: state.dice,
-                    total: Number(newValue),
-                    source: "total",
-                  });
-                }
-              }}
-              displayButtons={false}
-            />
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">{"Total"}</div>
+              <NumberInput
+                placeholder={"Total"}
+                defaultValue={1}
+                value={state.total}
+                onValueChange={(newValue) => {
+                  if (newValue) {
+                    setState({
+                      dice: state.dice,
+                      total: Number(newValue),
+                      source: "total",
+                    });
+                  }
+                }}
+                displayButtons={false}
+              />
+            </div>
           </div>
+
+          <DiceModifiersTable
+            modifiers={modifiers}
+            setModifiers={setModifiers}
+          />
         </div>
 
-        <DiceModifiersTable modifiers={modifiers} setModifiers={setModifiers} />
+        {/* Vertical divider */}
+        <div className="w-px bg-gray-300" />
+
+        {/* Totals panel */}
+        <div className="p-4 border rounded-lg min-w-[200px]">
+          <h3 className="text-lg font-medium mb-2">Totals</h3>
+
+          <Table>
+            <TableBody>
+              {totalsData.map((item, idx) => (
+                <TableRow key={idx}>
+                  <TableCell className="text-left font-medium">
+                    {item.key}
+                  </TableCell>
+                  <TableCell className="text-right font-semibold">
+                    {item.value}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
-      {/* Vertical divider */}
-      <div className="w-px bg-gray-300" />
-
-      {/* Totals panel */}
-      <div className="p-4 border rounded-lg min-w-[200px]">
-        <h3 className="text-lg font-medium mb-2">Totals</h3>
-
-        <Table>
-          <TableBody>
-            {totalsData.map((item, idx) => (
-              <TableRow key={idx}>
-                <TableCell className="text-left font-medium">
-                  {item.key}
-                </TableCell>
-                <TableCell className="text-right font-semibold">
-                  {item.value}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <div className="fixed bottom-4 right-4 z-50">
+        <ModeToggle />
       </div>
-    </div>
+    </ThemeProvider>
   );
 }
 
