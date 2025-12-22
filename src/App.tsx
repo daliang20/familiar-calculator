@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
-import './App.css'
-import { DiceSelector } from './Dice'
+import { useState, useEffect } from "react";
+import "./App.css";
+import { DiceSelector } from "./Dice";
 // import { DiceModifiersPanel } from './DiceModifierPanel'
-import { Separator } from "@/components/ui/separator"
-import { NumberInput } from './NumericInput'
-import { DiceModifiersTable } from './DiceModifierTable'
+import { Separator } from "@/components/ui/separator";
+import { NumberInput } from "./NumericInput";
+import { DiceModifiersTable } from "./DiceModifierTable";
+
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 function smartFloor(num: number) {
   const epsilon = 1e-6; // threshold for "close enough" to the next integer
@@ -15,73 +17,79 @@ function smartFloor(num: number) {
   return floored; // otherwise just floor
 }
 
-function distributeTotal(total: number, count: number): number[] {
-  const base = Math.floor(total / count)
-  let remainder = total % count
+// function distributeTotal(total: number, count: number): number[] {
+//   const base = Math.floor(total / count);
+//   let remainder = total % count;
 
-  return Array.from({ length: count }, () => {
-    if (remainder > 0) {
-      remainder--
-      return base + 1
-    }
-    return base
-  })
-}
+//   return Array.from({ length: count }, () => {
+//     if (remainder > 0) {
+//       remainder--;
+//       return base + 1;
+//     }
+//     return base;
+//   });
+// }
 
 type DiceState = {
-  dice: number[]   // e.g. [2, 5, 3]
-  total: number
-  source: "dice" | "total"
-}
+  dice: number[]; // e.g. [2, 5, 3]
+  total: number;
+  source: "dice" | "total";
+};
 
 function App() {
   const [state, setState] = useState<DiceState>({
     dice: [1, 1, 1],
     total: 3,
     source: "dice",
-  })
+  });
 
   // When dice change, recompute total
   useEffect(() => {
     if (state.source === "dice") {
-      const sum = state.dice.reduce((a, b) => a + b, 0)
+      const sum = state.dice.reduce((a, b) => a + b, 0);
       if (sum !== state.total) {
-        setState(s => ({ ...s, total: sum }))
+        setState((s) => ({ ...s, total: sum }));
       }
     } else if (state.source === "total") {
       // setState(s => ({
       //   ...s,
       //   dice: distributeTotal(s.total, s.dice.length),
       // }))
-
     }
-  }, [state.dice, state.total, state.source])
-
+  }, [state.dice, state.total, state.source]);
 
   const [modifiers, setModifiers] = useState<
-    { multiplier: number; diceTotal: number, enabled: boolean }[]
-  >([])
+    { multiplier: number; diceTotal: number; enabled: boolean }[]
+  >([]);
 
-
-  const labels = ['Dice 1', 'Dice 2', 'Dice 3']
+  const labels = ["Dice 1", "Dice 2", "Dice 3"];
 
   // Calculate totals
   const variableDiceTotal = modifiers.reduce(
-    (total, m) => m.enabled ? total + m.diceTotal : total,
+    (total, m) => (m.enabled ? total + m.diceTotal : total),
     0
-  )
+  );
 
   // Final multiplier = sum of all multipliers
   const multiplier = modifiers.reduce(
-    (acc, m) => m.enabled ? acc + m.multiplier : acc,
+    (acc, m) => (m.enabled ? acc + m.multiplier : acc),
     0
-  )
+  );
 
   const finalMultiplier = multiplier == 0 ? 1 : multiplier;
 
   // Floor final value
-  const diceTotalBeforeFlooring = (state.total + variableDiceTotal) * finalMultiplier;
+  const diceTotalBeforeFlooring =
+    (state.total + variableDiceTotal) * finalMultiplier;
   const diceTotal = smartFloor(diceTotalBeforeFlooring);
+
+  const totalsData = [
+    { key: "Base Dice Total", value: state.total },
+    { key: "Variable Dice Total", value: variableDiceTotal },
+    { key: "Final Multiplier", value: finalMultiplier.toFixed(2) },
+    { key: "Before Flooring", value: diceTotalBeforeFlooring.toFixed(2) },
+    { key: "Final Value", value: diceTotal },
+  ];
 
   return (
     <div className="flex gap-6 p-6">
@@ -95,29 +103,24 @@ function App() {
               number={i + 1}
               label={labels[i]}
               value={value}
-              onChange={newValue => {
-                console.log('dice selector ' + i)
-                console.log(newValue);
-                const dice = [...state.dice]
+              onChange={(newValue) => {
+                const dice = [...state.dice];
                 if (newValue) {
-                  dice[i] = Number(newValue)
+                  dice[i] = Number(newValue);
                   setState({
                     dice,
                     total: state.total,
                     source: "dice",
-                  })
+                  });
                 }
               }}
             />
           ))}
 
-
-          <Separator orientation='vertical' />
+          <Separator orientation="vertical" />
 
           <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              {"Total"}
-            </div>
+            <div className="flex items-center gap-2">{"Total"}</div>
             <NumberInput
               placeholder={"Total"}
               defaultValue={1}
@@ -128,56 +131,41 @@ function App() {
                     dice: state.dice,
                     total: Number(newValue),
                     source: "total",
-                  })
+                  });
                 }
               }}
               displayButtons={false}
             />
           </div>
-
         </div>
 
-        {/* Modifiers panel */}
-        {/* <div>
-          <DiceModifiersPanel
-            modifiers={modifiers}
-            setModifiers={setModifiers}
-          />
-        </div> */}
-
-        <DiceModifiersTable
-          modifiers={modifiers}
-          setModifiers={setModifiers} />
+        <DiceModifiersTable modifiers={modifiers} setModifiers={setModifiers} />
       </div>
 
       {/* Vertical divider */}
       <div className="w-px bg-gray-300" />
 
       {/* Totals panel */}
-      <div className="flex flex-col gap-4 p-4 border rounded-lg min-w-[180px]">
-        <h3 className="text-lg font-medium">Totals</h3>
-        <div>
-          <span className="font-medium">Base Dice Total:</span> {state.total}
-        </div>
+      <div className="p-4 border rounded-lg min-w-[200px]">
+        <h3 className="text-lg font-medium mb-2">Totals</h3>
 
-        <div>
-          <span className="font-medium">Variable Dice Total:</span> {variableDiceTotal}
-        </div>
-
-        <div>
-          <span className="font-medium">Final Multiplier:</span> {finalMultiplier.toFixed(2)}
-        </div>
-
-        <div>
-          <span className="font-medium">Before Flooring</span> {diceTotalBeforeFlooring.toFixed(4)}
-        </div>
-
-        <div>
-          <span className="font-medium">Final Value:</span> {diceTotal}
-        </div>
+        <Table>
+          <TableBody>
+            {totalsData.map((item, idx) => (
+              <TableRow key={idx}>
+                <TableCell className="text-left font-medium">
+                  {item.key}
+                </TableCell>
+                <TableCell className="text-right font-semibold">
+                  {item.value}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
