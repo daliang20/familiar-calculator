@@ -7,7 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus, Trash2 } from "lucide-react";
+import { Plus, Minus, Trash2, Diff, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   InputGroup,
@@ -163,6 +163,9 @@ export function DiceModifiersTable({
                   {/* Dice Total */}
                   <TableCell>
                     <InputGroup>
+                      <InputGroupAddon>
+                        <Diff />
+                      </InputGroupAddon>
                       <InputGroupAddon align="inline-end">
                         <InputGroupButton
                           variant={"outline"}
@@ -217,6 +220,9 @@ export function DiceModifiersTable({
                   {/* Multiplier */}
                   <TableCell>
                     <InputGroup>
+                      <InputGroupAddon>
+                        <X />
+                      </InputGroupAddon>
                       <InputGroupAddon align="inline-end">
                         <InputGroupButton
                           size="icon-xs"

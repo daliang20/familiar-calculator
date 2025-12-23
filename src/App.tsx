@@ -6,7 +6,13 @@ import { Separator } from "@/components/ui/separator";
 import { NumberInput } from "./NumericInput";
 import { DiceModifiersTable } from "./DiceModifierTable";
 
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableRow,
+} from "@/components/ui/table";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "./components/mode-toggle";
 
@@ -90,7 +96,7 @@ function App() {
     { key: "Variable Dice Total", value: variableDiceTotal },
     { key: "Final Multiplier", value: finalMultiplier.toFixed(2) },
     { key: "Before Flooring", value: diceTotalBeforeFlooring.toFixed(2) },
-    { key: "Final Value", value: diceTotal },
+    // { key: "Final Value", value: diceTotal },
   ];
 
   return (
@@ -168,6 +174,14 @@ function App() {
                 </TableRow>
               ))}
             </TableBody>
+            <TableFooter>
+              <TableCell className="text-left font-medium">
+                Final Value
+              </TableCell>
+              <TableCell className="text-right font-semibold">
+                {diceTotal}
+              </TableCell>
+            </TableFooter>
           </Table>
         </div>
       </div>
