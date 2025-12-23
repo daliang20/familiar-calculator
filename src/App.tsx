@@ -5,6 +5,8 @@ import { DiceSelector } from "./Dice";
 import { Separator } from "@/components/ui/separator";
 import { NumberInput } from "./NumericInput";
 import { DiceModifiersTable } from "./DiceModifierTable";
+import Suinose from './assets/suinose.ico'; // Adjust the path as necessary
+
 
 import {
   Table,
@@ -15,6 +17,8 @@ import {
 } from "@/components/ui/table";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "./components/mode-toggle";
+import { Button } from "./components/ui/button";
+import { ButtonGroup } from "./components/ui/button-group";
 
 function smartFloor(num: number) {
   const epsilon = 1e-6; // threshold for "close enough" to the next integer
@@ -187,7 +191,16 @@ function App() {
       </div>
 
       <div className="fixed bottom-4 right-4 z-50">
-        <ModeToggle />
+        <ButtonGroup>
+
+          <ModeToggle />
+          <Button variant="outline" size="icon">
+            <a href="https://www.youtube.com/@HoshimachiSuisei/membership">
+              {/* Reference the file directly from the public path */}
+              <img src={Suinose} alt="My Icon" />
+            </a>
+          </Button>
+        </ButtonGroup>
       </div>
     </ThemeProvider>
   );
