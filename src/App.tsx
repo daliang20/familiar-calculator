@@ -195,7 +195,7 @@ function App() {
 
           <ModeToggle />
           <Button variant="outline" size="icon">
-            <a href="https://www.youtube.com/@HoshimachiSuisei/join">
+            <a href="https://www.youtube.com/@HoshimachiSuisei/join" target="_blank" rel="noopener noreferrer">
               {/* Reference the file directly from the public path */}
               <img src={Suinose} alt="My Icon" />
             </a>
