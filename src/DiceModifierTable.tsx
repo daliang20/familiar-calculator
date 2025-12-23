@@ -265,7 +265,8 @@ export function DiceModifiersTable({
                         onChange={(e) => {
                           const v = e.target.value;
 
-                          if (v === "") {
+                          // allow empty or trailing dot
+                          if (v === "" || v.endsWith(".")) {
                             setMultiplierInputs((p) =>
                               p.map((x, i) => (i === index ? v : x))
                             );
