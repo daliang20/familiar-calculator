@@ -41,10 +41,20 @@ export function DiceModifiersTable({
 
   const diceDebounceRefs = useRef<Record<number, number>>({});
   const multDebounceRefs = useRef<Record<number, number>>({});
+  const editingRef = useRef<Record<number, boolean>>({});
 
   useEffect(() => {
-    setDiceInputs(modifiers.map((m) => String(m.diceTotal)));
-    setMultiplierInputs(modifiers.map((m) => String(m.multiplier)));
+    setDiceInputs((prev) =>
+      prev.map((v, i) =>
+        editingRef.current[i] ? v : String(modifiers[i]?.diceTotal ?? 0)
+      )
+    );
+
+    setMultiplierInputs((prev) =>
+      prev.map((v, i) =>
+        editingRef.current[i] ? v : String(modifiers[i]?.multiplier ?? 0)
+      )
+    );
   }, [modifiers]);
 
   const updateModifier = (index: number, value: Partial<Modifier>) => {
@@ -67,6 +77,7 @@ export function DiceModifiersTable({
 
   const commitDice = (index: number, value: number) => {
     clearDiceDebounce(index);
+    editingRef.current[index] = false;
     updateModifier(index, { diceTotal: value });
     setDiceInputs((p) => p.map((x, i) => (i === index ? String(value) : x)));
   };
@@ -87,6 +98,7 @@ export function DiceModifiersTable({
 
   const commitMultiplier = (index: number, value: number) => {
     clearMultDebounce(index);
+    editingRef.current[index] = false;
     updateModifier(index, { multiplier: value });
     setMultiplierInputs((p) =>
       p.map((x, i) => (i === index ? String(value) : x))
@@ -120,6 +132,8 @@ export function DiceModifiersTable({
     setModifiers(modifiers.filter((_, i) => i !== index));
     setDiceInputs((p) => p.filter((_, i) => i !== index));
     setMultiplierInputs((p) => p.filter((_, i) => i !== index));
+
+    delete editingRef.current[index];
     clearDiceDebounce(index);
     clearMultDebounce(index);
   };
@@ -198,6 +212,7 @@ export function DiceModifiersTable({
                         value={diceInputs[index]}
                         onChange={(e) => {
                           const v = e.target.value;
+                          editingRef.current[index] = true;
 
                           if (v === "" || v === "-") {
                             setDiceInputs((p) =>
@@ -264,6 +279,7 @@ export function DiceModifiersTable({
                         value={multiplierInputs[index]}
                         onChange={(e) => {
                           const v = e.target.value;
+                          editingRef.current[index] = true;
 
                           // allow empty or trailing dot
                           if (v === "" || v.endsWith(".")) {
