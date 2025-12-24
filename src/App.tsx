@@ -5,8 +5,8 @@ import { DiceSelector } from "./Dice";
 import { Separator } from "@/components/ui/separator";
 import { NumberInput } from "./NumericInput";
 import { DiceModifiersTable } from "./DiceModifierTable";
-import Suinose from './assets/suinose.ico'; // Adjust the path as necessary
-
+import Suinose from "./assets/suinose.ico";
+import Suinose67 from "./assets/suinose-67.gif";
 
 import {
   Table,
@@ -49,6 +49,7 @@ type DiceState = {
 };
 
 function App() {
+  const [animateSuisei, setAnimateSuisei] = useState(false);
   const [state, setState] = useState<DiceState>({
     dice: [1, 1, 1],
     total: 3,
@@ -94,6 +95,15 @@ function App() {
   const diceTotalBeforeFlooring =
     (state.total + variableDiceTotal) * finalMultiplier;
   const diceTotal = smartFloor(diceTotalBeforeFlooring);
+
+  // When dice change, recompute total
+  useEffect(() => {
+    if (diceTotal === 67) {
+      setAnimateSuisei(true);
+    } else {
+      setAnimateSuisei(false);
+    }
+  }, [diceTotal]);
 
   const totalsData = [
     { key: "Base Dice Total", value: state.total },
@@ -192,12 +202,20 @@ function App() {
 
       <div className="fixed bottom-4 right-4 z-50">
         <ButtonGroup>
-
           <ModeToggle />
-          <Button variant="outline" size="icon">
-            <a href="https://www.youtube.com/@HoshimachiSuisei/join" target="_blank" rel="noopener noreferrer">
+          <Button
+            variant="outline"
+            size="icon"
+            onMouseEnter={() => setAnimateSuisei(true)}
+            onMouseLeave={() => setAnimateSuisei(false)}
+          >
+            <a
+              href="https://www.youtube.com/@HoshimachiSuisei/join"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {/* Reference the file directly from the public path */}
-              <img src={Suinose} alt="My Icon" />
+              <img src={animateSuisei ? Suinose67 : Suinose} alt="My Icon" />
             </a>
           </Button>
         </ButtonGroup>
