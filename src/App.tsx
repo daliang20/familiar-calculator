@@ -80,13 +80,13 @@ function App() {
   // Calculate totals
   const variableDiceTotal = modifiers.reduce(
     (total, m) => (m.enabled ? total + m.diceTotal : total),
-    0
+    0,
   );
 
   // Final multiplier = sum of all multipliers
   const multiplier = modifiers.reduce(
     (acc, m) => (m.enabled ? acc + m.multiplier : acc),
-    0
+    0,
   );
 
   const finalMultiplier = multiplier == 0 ? 1 : multiplier;

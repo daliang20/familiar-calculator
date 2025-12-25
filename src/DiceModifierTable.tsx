@@ -33,10 +33,10 @@ export function DiceModifiersTable({
   setModifiers,
 }: DiceModifiersTableProps) {
   const [diceInputs, setDiceInputs] = useState<string[]>(
-    modifiers.map((m) => String(m.diceTotal))
+    modifiers.map((m) => String(m.diceTotal)),
   );
   const [multiplierInputs, setMultiplierInputs] = useState<string[]>(
-    modifiers.map((m) => String(m.multiplier))
+    modifiers.map((m) => String(m.multiplier)),
   );
 
   const diceDebounceRefs = useRef<Record<number, number>>({});
@@ -46,20 +46,20 @@ export function DiceModifiersTable({
   useEffect(() => {
     setDiceInputs((prev) =>
       prev.map((v, i) =>
-        editingRef.current[i] ? v : String(modifiers[i]?.diceTotal ?? 0)
-      )
+        editingRef.current[i] ? v : String(modifiers[i]?.diceTotal ?? 0),
+      ),
     );
 
     setMultiplierInputs((prev) =>
       prev.map((v, i) =>
-        editingRef.current[i] ? v : String(modifiers[i]?.multiplier ?? 0)
-      )
+        editingRef.current[i] ? v : String(modifiers[i]?.multiplier ?? 0),
+      ),
     );
   }, [modifiers]);
 
   const updateModifier = (index: number, value: Partial<Modifier>) => {
     setModifiers(
-      modifiers.map((m, i) => (i === index ? { ...m, ...value } : m))
+      modifiers.map((m, i) => (i === index ? { ...m, ...value } : m)),
     );
   };
 
@@ -101,7 +101,7 @@ export function DiceModifiersTable({
     editingRef.current[index] = false;
     updateModifier(index, { multiplier: value });
     setMultiplierInputs((p) =>
-      p.map((x, i) => (i === index ? String(value) : x))
+      p.map((x, i) => (i === index ? String(value) : x)),
     );
   };
 
@@ -216,14 +216,14 @@ export function DiceModifiersTable({
 
                           if (v === "" || v === "-") {
                             setDiceInputs((p) =>
-                              p.map((x, i) => (i === index ? v : x))
+                              p.map((x, i) => (i === index ? v : x)),
                             );
                             return;
                           }
 
                           if (/^-?\d+$/.test(v)) {
                             setDiceInputs((p) =>
-                              p.map((x, i) => (i === index ? v : x))
+                              p.map((x, i) => (i === index ? v : x)),
                             );
                             scheduleDiceCommit(index, v);
                           }
@@ -247,7 +247,7 @@ export function DiceModifiersTable({
                           onClick={() =>
                             commitMultiplier(
                               index,
-                              +(modifier.multiplier + 0.2).toFixed(3)
+                              +(modifier.multiplier + 0.2).toFixed(3),
                             )
                           }
                         >
@@ -263,8 +263,8 @@ export function DiceModifiersTable({
                               index,
                               Math.max(
                                 0,
-                                +(modifier.multiplier - 0.2).toFixed(3)
-                              )
+                                +(modifier.multiplier - 0.2).toFixed(3),
+                              ),
                             )
                           }
                         >
@@ -284,14 +284,14 @@ export function DiceModifiersTable({
                           // allow empty or trailing dot
                           if (v === "" || v.endsWith(".")) {
                             setMultiplierInputs((p) =>
-                              p.map((x, i) => (i === index ? v : x))
+                              p.map((x, i) => (i === index ? v : x)),
                             );
                             return;
                           }
 
                           if (/^\d*\.?\d*$/.test(v)) {
                             setMultiplierInputs((p) =>
-                              p.map((x, i) => (i === index ? v : x))
+                              p.map((x, i) => (i === index ? v : x)),
                             );
                             scheduleMultiplierCommit(index, v);
                           }
