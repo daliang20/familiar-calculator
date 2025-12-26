@@ -27,6 +27,7 @@ type DiceState = {
 
 function App() {
   const [stringTotal, setStringTotal] = useState("");
+  const [targetToBeat, setTargetToBeat] = useState("");
   const [state, setState] = useState<DiceState>({
     dice: [1, 1, 1],
     total: 3,
@@ -49,20 +50,27 @@ function App() {
 
   const labels = ["Dice 1", "Dice 2", "Dice 3"];
 
-  const { variableDiceTotal, finalMultiplier, beforeFlooring, finalTotal } =
-    calculateDiceTotals({
-      dice: state.dice,
-      modifiers,
-      total: state.total,
-      source: state.source,
-    });
+  const {
+    variableDiceTotal,
+    finalMultiplier,
+    beforeFlooring,
+    finalTotal,
+    maxPossibleRoll,
+    minPossibleRoll,
+  } = calculateDiceTotals({
+    dice: state.dice,
+    modifiers,
+    total: state.total,
+    source: state.source,
+  });
 
   const totalsData = [
     { key: "Base Dice Total", value: state.total },
     { key: "Variable Dice Total", value: variableDiceTotal },
     { key: "Final Multiplier", value: finalMultiplier.toFixed(2) },
     { key: "Before Flooring", value: beforeFlooring.toFixed(2) },
-    // { key: "Final Value", value: diceTotal },
+    { key: "Minimum Roll (3) ", value: minPossibleRoll },
+    { key: "Maximum Roll (18)", value: maxPossibleRoll },
   ];
 
   return (
@@ -95,7 +103,7 @@ function App() {
             <Separator orientation="vertical" />
 
             <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">{"Total"}</div>
+              <div className="flex items-center gap-2">Total/Target</div>
               <Input
                 type="number"
                 placeholder={"Total"}
@@ -107,6 +115,14 @@ function App() {
                     total: Number(newValue.value),
                     source: "total",
                   });
+                }}
+              />
+              <Input
+                type="number"
+                placeholder={"Target"}
+                value={targetToBeat}
+                onValueChange={(newValue) => {
+                  setTargetToBeat(newValue.raw);
                 }}
               />
             </div>
@@ -139,12 +155,25 @@ function App() {
               ))}
             </TableBody>
             <TableFooter>
-              <TableCell className="text-left font-medium">
-                Final Value
-              </TableCell>
-              <TableCell className="text-right font-semibold">
-                {finalTotal}
-              </TableCell>
+              <TableRow>
+                <TableCell className="text-left font-medium">
+                  Final Value
+                </TableCell>
+                <TableCell className="text-right font-semibold">
+                  {finalTotal}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="text-left  font-semibold">
+                  {Number(targetToBeat) >= minPossibleRoll &&
+                  Number(targetToBeat) <= maxPossibleRoll
+                    ? "POSSIBLE"
+                    : "NOT POSSIBLE"}
+                </TableCell>
+                <TableCell className="text-right font-semibold">
+                  {Number(targetToBeat)}
+                </TableCell>
+              </TableRow>
             </TableFooter>
           </Table>
         </div>
