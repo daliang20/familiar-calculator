@@ -1,6 +1,7 @@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Dice1, Dice2, Dice3, Dice4, Dice5, Dice6 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import React from "react";
 
 type DiceSelectorProps = {
   number: number;
@@ -10,6 +11,8 @@ type DiceSelectorProps = {
 };
 
 export function DiceSelector({ label, value, onChange }: DiceSelectorProps) {
+  const [stringValue, setStringValue] = React.useState(value.toString());
+
   return (
     <>
       <div className="flex flex-col gap-1">
@@ -18,9 +21,10 @@ export function DiceSelector({ label, value, onChange }: DiceSelectorProps) {
           <ToggleGroup
             type="single"
             size="sm"
-            value={value.toString()}
+            value={stringValue}
             variant={"outline"}
             onValueChange={(value) => {
+              setStringValue(value);
               onChange(Number(value));
             }}
           >
@@ -49,8 +53,9 @@ export function DiceSelector({ label, value, onChange }: DiceSelectorProps) {
           min={1}
           max={6}
           placeholder={label}
-          defaultValue={1}
+          value={stringValue}
           onValueChange={(numericChange) => {
+            setStringValue(numericChange.raw);
             onChange(numericChange.value as number);
           }}
         />

@@ -17,15 +17,7 @@ import { ModeToggle } from "./components/mode-toggle";
 import { ButtonGroup } from "./components/ui/button-group";
 import { Input } from "./components/ui/input";
 import { SuiseiIcon } from "./SuiseiIcon";
-
-function smartFloor(num: number) {
-  const epsilon = 1e-6; // threshold for "close enough" to the next integer
-  const floored = Math.floor(num);
-  if (num - floored > 1 - epsilon) {
-    return floored + 1; // round up if very close
-  }
-  return floored; // otherwise just floor
-}
+import { calculateDiceTotals } from "./lib/calculateDiceTotal";
 
 type DiceState = {
   dice: number[]; // e.g. [2, 5, 3]
@@ -34,6 +26,7 @@ type DiceState = {
 };
 
 function App() {
+  const [stringTotal, setStringTotal] = useState("");
   const [state, setState] = useState<DiceState>({
     dice: [1, 1, 1],
     total: 3,
@@ -56,30 +49,19 @@ function App() {
 
   const labels = ["Dice 1", "Dice 2", "Dice 3"];
 
-  // Calculate totals
-  const variableDiceTotal = modifiers.reduce(
-    (total, m) => (m.enabled ? total + m.diceTotal : total),
-    0,
-  );
-
-  // Final multiplier = sum of all multipliers
-  const multiplier = modifiers.reduce(
-    (acc, m) => (m.enabled ? acc + m.multiplier : acc),
-    0,
-  );
-
-  const finalMultiplier = multiplier == 0 ? 1 : multiplier;
-
-  // Floor final value
-  const diceTotalBeforeFlooring =
-    (state.total + variableDiceTotal) * finalMultiplier;
-  const diceTotal = smartFloor(diceTotalBeforeFlooring);
+  const { variableDiceTotal, finalMultiplier, beforeFlooring, finalTotal } =
+    calculateDiceTotals({
+      dice: state.dice,
+      modifiers,
+      total: state.total,
+      source: state.source,
+    });
 
   const totalsData = [
     { key: "Base Dice Total", value: state.total },
     { key: "Variable Dice Total", value: variableDiceTotal },
     { key: "Final Multiplier", value: finalMultiplier.toFixed(2) },
-    { key: "Before Flooring", value: diceTotalBeforeFlooring.toFixed(2) },
+    { key: "Before Flooring", value: beforeFlooring.toFixed(2) },
     // { key: "Final Value", value: diceTotal },
   ];
 
@@ -117,15 +99,14 @@ function App() {
               <Input
                 type="number"
                 placeholder={"Total"}
-                defaultValue={3}
+                value={state.source === "total" ? stringTotal : state.total}
                 onValueChange={(newValue) => {
-                  if (newValue) {
-                    setState({
-                      dice: state.dice,
-                      total: Number(newValue.value),
-                      source: "total",
-                    });
-                  }
+                  setStringTotal(newValue.raw);
+                  setState({
+                    dice: state.dice,
+                    total: Number(newValue.value),
+                    source: "total",
+                  });
                 }}
               />
             </div>
@@ -162,7 +143,7 @@ function App() {
                 Final Value
               </TableCell>
               <TableCell className="text-right font-semibold">
-                {diceTotal}
+                {finalTotal}
               </TableCell>
             </TableFooter>
           </Table>
@@ -172,7 +153,7 @@ function App() {
       <div className="fixed bottom-4 right-4 z-50">
         <ButtonGroup>
           <ModeToggle />
-          <SuiseiIcon animate={diceTotal === 67} />
+          <SuiseiIcon animate={finalTotal === 67} />
         </ButtonGroup>
       </div>
     </ThemeProvider>
