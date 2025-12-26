@@ -3,7 +3,6 @@ import "./App.css";
 import { DiceSelector } from "./Dice";
 // import { DiceModifiersPanel } from './DiceModifierPanel'
 import { Separator } from "@/components/ui/separator";
-import { NumberInput } from "./NumericInput";
 import { DiceModifiersTable } from "./DiceModifierTable";
 import Suinose from "./assets/suinose.ico";
 import Suinose67 from "./assets/suinose-67.gif";
@@ -19,6 +18,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "./components/mode-toggle";
 import { Button } from "./components/ui/button";
 import { ButtonGroup } from "./components/ui/button-group";
+import { Input } from "./components/ui/input";
 
 function smartFloor(num: number) {
   const epsilon = 1e-6; // threshold for "close enough" to the next integer
@@ -144,7 +144,8 @@ function App() {
 
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">{"Total"}</div>
-              <NumberInput
+              <Input
+                type="number"
                 placeholder={"Total"}
                 defaultValue={1}
                 value={state.total}
@@ -152,12 +153,11 @@ function App() {
                   if (newValue) {
                     setState({
                       dice: state.dice,
-                      total: Number(newValue),
+                      total: Number(newValue.value),
                       source: "total",
                     });
                   }
                 }}
-                displayButtons={false}
               />
             </div>
           </div>
