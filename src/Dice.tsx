@@ -50,7 +50,6 @@ export function DiceSelector({ label, value, onChange }: DiceSelectorProps) {
           max={6}
           placeholder={label}
           defaultValue={1}
-          value={value}
           onValueChange={(numericChange) => {
             onChange(numericChange.value as number);
           }}

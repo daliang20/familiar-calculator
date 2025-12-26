@@ -4,8 +4,6 @@ import { DiceSelector } from "./Dice";
 // import { DiceModifiersPanel } from './DiceModifierPanel'
 import { Separator } from "@/components/ui/separator";
 import { DiceModifiersTable } from "./DiceModifierTable";
-import Suinose from "./assets/suinose.ico";
-import Suinose67 from "./assets/suinose-67.gif";
 
 import {
   Table,
@@ -16,9 +14,9 @@ import {
 } from "@/components/ui/table";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "./components/mode-toggle";
-import { Button } from "./components/ui/button";
 import { ButtonGroup } from "./components/ui/button-group";
 import { Input } from "./components/ui/input";
+import { SuiseiIcon } from "./SuiseiIcon";
 
 function smartFloor(num: number) {
   const epsilon = 1e-6; // threshold for "close enough" to the next integer
@@ -29,19 +27,6 @@ function smartFloor(num: number) {
   return floored; // otherwise just floor
 }
 
-// function distributeTotal(total: number, count: number): number[] {
-//   const base = Math.floor(total / count);
-//   let remainder = total % count;
-
-//   return Array.from({ length: count }, () => {
-//     if (remainder > 0) {
-//       remainder--;
-//       return base + 1;
-//     }
-//     return base;
-//   });
-// }
-
 type DiceState = {
   dice: number[]; // e.g. [2, 5, 3]
   total: number;
@@ -49,7 +34,6 @@ type DiceState = {
 };
 
 function App() {
-  const [animateSuisei, setAnimateSuisei] = useState(false);
   const [state, setState] = useState<DiceState>({
     dice: [1, 1, 1],
     total: 3,
@@ -63,11 +47,6 @@ function App() {
       if (sum !== state.total) {
         setState((s) => ({ ...s, total: sum }));
       }
-    } else if (state.source === "total") {
-      // setState(s => ({
-      //   ...s,
-      //   dice: distributeTotal(s.total, s.dice.length),
-      // }))
     }
   }, [state.dice, state.total, state.source]);
 
@@ -95,15 +74,6 @@ function App() {
   const diceTotalBeforeFlooring =
     (state.total + variableDiceTotal) * finalMultiplier;
   const diceTotal = smartFloor(diceTotalBeforeFlooring);
-
-  // When dice change, recompute total
-  useEffect(() => {
-    if (diceTotal === 67) {
-      setAnimateSuisei(true);
-    } else {
-      setAnimateSuisei(false);
-    }
-  }, [diceTotal]);
 
   const totalsData = [
     { key: "Base Dice Total", value: state.total },
@@ -147,8 +117,7 @@ function App() {
               <Input
                 type="number"
                 placeholder={"Total"}
-                defaultValue={1}
-                value={state.total}
+                defaultValue={3}
                 onValueChange={(newValue) => {
                   if (newValue) {
                     setState({
@@ -203,21 +172,7 @@ function App() {
       <div className="fixed bottom-4 right-4 z-50">
         <ButtonGroup>
           <ModeToggle />
-          <Button
-            variant="outline"
-            size="icon"
-            onMouseEnter={() => setAnimateSuisei(true)}
-            onMouseLeave={() => setAnimateSuisei(false)}
-          >
-            <a
-              href="https://www.youtube.com/@HoshimachiSuisei/join"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {/* Reference the file directly from the public path */}
-              <img src={animateSuisei ? Suinose67 : Suinose} alt="My Icon" />
-            </a>
-          </Button>
+          <SuiseiIcon animate={diceTotal === 67} />
         </ButtonGroup>
       </div>
     </ThemeProvider>
