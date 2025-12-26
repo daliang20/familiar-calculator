@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 import { DiceSelector } from "./Dice";
-// import { DiceModifiersPanel } from './DiceModifierPanel'
 import { Separator } from "@/components/ui/separator";
 import { DiceModifiersTable } from "./DiceModifierTable";
 
@@ -19,8 +18,34 @@ import { Input } from "./components/ui/input";
 import { SuiseiIcon } from "./SuiseiIcon";
 import { calculateDiceTotals } from "./lib/calculateDiceTotal";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import { Plus, Pencil, Trash2 } from "lucide-react";
+
+const STORAGE_KEY = "dice-profiles:v1";
+
+type StoredState = {
+  profiles: Profile[];
+  activeProfileId: string | null;
+};
+
 type DiceState = {
-  dice: number[]; // e.g. [2, 5, 3]
+  dice: number[];
   total: number;
   source: "dice" | "total";
 };
@@ -48,7 +73,67 @@ function App() {
     source: "dice",
   });
 
-  // When dice change, recompute total
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
+
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [profileNameDraft, setProfileNameDraft] = useState("");
+  const [editingProfileId, setEditingProfileId] = useState<string | null>(null);
+
+  const activeProfile = profiles.find((p) => p.id === activeProfileId);
+  const modifiers = activeProfile?.modifiers ?? [];
+
+  const labels = ["Dice 1", "Dice 2", "Dice 3"];
+
+  // Helper to save profiles and activeProfileId
+  function saveProfiles(
+    updatedProfiles: Profile[],
+    newActiveId: string | null,
+  ) {
+    setProfiles(updatedProfiles);
+    setActiveProfileId(newActiveId);
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        profiles: updatedProfiles,
+        activeProfileId: newActiveId,
+      }),
+    );
+  }
+
+  // Load profiles from localStorage or create default
+  useEffect(() => {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      try {
+        const parsed: StoredState = JSON.parse(raw);
+        const loadedProfiles = parsed.profiles.map((p) => ({
+          ...p,
+          modifiers: p.modifiers.map((m) => ({
+            id: m.id ?? crypto.randomUUID(),
+            multiplier: m.multiplier ?? 0,
+            diceTotal: m.diceTotal ?? 0,
+            enabled: m.enabled ?? true,
+            favorite: m.favorite ?? false,
+          })),
+        }));
+        setProfiles(loadedProfiles);
+        setActiveProfileId(
+          parsed.activeProfileId ?? loadedProfiles[0]?.id ?? null,
+        );
+        return;
+      } catch {
+        console.warn("Failed to parse stored profiles");
+      }
+    }
+
+    // No profiles in storage, create default
+    const id = crypto.randomUUID();
+    const defaultProfile = { id, name: "Default", modifiers: [] };
+    saveProfiles([defaultProfile], id);
+  }, []);
+
+  // Update total when dice change
   useEffect(() => {
     if (state.source === "dice") {
       const sum = state.dice.reduce((a, b) => a + b, 0);
@@ -56,41 +141,59 @@ function App() {
         setState((s) => ({ ...s, total: sum }));
       }
     }
-  }, [state.dice, state.total, state.source]);
+  }, [state.dice, state.source, state.total]);
 
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
+  // Profile CRUD
+  function openCreateProfileDialog() {
+    setEditingProfileId(null);
+    setProfileNameDraft("");
+    setProfileDialogOpen(true);
+  }
 
-  const activeProfile = profiles.find((p) => p.id === activeProfileId);
-  const modifiers = activeProfile?.modifiers ?? [];
-  useEffect(() => {
-    if (profiles.length === 0) {
+  function openRenameProfileDialog(profile: Profile) {
+    setEditingProfileId(profile.id);
+    setProfileNameDraft(profile.name);
+    setProfileDialogOpen(true);
+  }
+
+  function submitProfileDialog() {
+    const name = profileNameDraft.trim();
+    if (!name) return;
+
+    if (editingProfileId) {
+      // Rename
+      const updated = profiles.map((p) =>
+        p.id === editingProfileId ? { ...p, name } : p,
+      );
+      saveProfiles(updated, activeProfileId);
+    } else {
+      // Create
       const id = crypto.randomUUID();
-      setProfiles([
-        {
-          id,
-          name: "Default",
-          modifiers: [],
-        },
-      ]);
-      setActiveProfileId(id);
+      const newProfile = { id, name, modifiers: [] };
+      saveProfiles([...profiles, newProfile], id);
     }
-  }, [profiles]);
+
+    setProfileDialogOpen(false);
+    setProfileNameDraft("");
+    setEditingProfileId(null);
+  }
+
+  function deleteProfile(id: string) {
+    const updated = profiles.filter((p) => p.id !== id);
+    const newActive =
+      activeProfileId === id ? updated[0]?.id ?? null : activeProfileId;
+    saveProfiles(updated, newActive);
+  }
+
   function updateActiveProfileModifiers(
     updater: (mods: DiceModifier[]) => DiceModifier[],
   ) {
     if (!activeProfileId) return;
-
-    setProfiles((prev) =>
-      prev.map((profile) =>
-        profile.id === activeProfileId
-          ? { ...profile, modifiers: updater(profile.modifiers) }
-          : profile,
-      ),
+    const updatedProfiles = profiles.map((p) =>
+      p.id === activeProfileId ? { ...p, modifiers: updater(p.modifiers) } : p,
     );
+    saveProfiles(updatedProfiles, activeProfileId);
   }
-
-  const labels = ["Dice 1", "Dice 2", "Dice 3"];
 
   const {
     variableDiceTotal,
@@ -129,14 +232,10 @@ function App() {
                 label={labels[i]}
                 value={value}
                 onChange={(newValue) => {
-                  const dice = [...state.dice];
                   if (newValue) {
+                    const dice = [...state.dice];
                     dice[i] = Number(newValue);
-                    setState({
-                      dice,
-                      total: state.total,
-                      source: "dice",
-                    });
+                    setState({ dice, total: state.total, source: "dice" });
                   }
                 }}
               />
@@ -163,11 +262,70 @@ function App() {
                 type="number"
                 placeholder={"Target"}
                 value={targetToBeat}
-                onValueChange={(newValue) => {
-                  setTargetToBeat(newValue.raw);
-                }}
+                onValueChange={(newValue) => setTargetToBeat(newValue.raw)}
               />
             </div>
+          </div>
+
+          {/* Profile Selector */}
+          <div className="flex items-center gap-2">
+            <Select
+              value={activeProfileId ?? ""}
+              onValueChange={setActiveProfileId}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select profile" />
+              </SelectTrigger>
+              <SelectContent>
+                {profiles.map((profile) => (
+                  <SelectItem key={profile.id} value={profile.id}>
+                    {profile.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={openCreateProfileDialog}
+              title="Create profile"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+
+            {activeProfile && (
+              <>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => openRenameProfileDialog(activeProfile)}
+                  title="Rename profile"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+
+                {profiles.length > 1 && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    title="Delete profile"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => {
+                      if (
+                        confirm(
+                          `Delete profile "${activeProfile.name}"? This cannot be undone.`,
+                        )
+                      ) {
+                        deleteProfile(activeProfile.id);
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </>
+            )}
           </div>
 
           <DiceModifiersTable
@@ -182,7 +340,6 @@ function App() {
         {/* Totals panel */}
         <div className="p-4 border rounded-lg min-w-[200px]">
           <h3 className="text-lg font-medium mb-2">Totals</h3>
-
           <Table>
             <TableBody>
               {totalsData.map((item, idx) => (
@@ -206,7 +363,7 @@ function App() {
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableCell className="text-left  font-semibold">
+                <TableCell className="text-left font-semibold">
                   {Number(targetToBeat) >= minPossibleRoll &&
                   Number(targetToBeat) <= maxPossibleRoll
                     ? "POSSIBLE"
@@ -227,6 +384,38 @@ function App() {
           <SuiseiIcon animate={finalTotal === 67} />
         </ButtonGroup>
       </div>
+
+      <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editingProfileId ? "Rename Profile" : "Create New Profile"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <Input
+            autoFocus
+            placeholder="Profile name"
+            value={profileNameDraft}
+            onChange={(e) => setProfileNameDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submitProfileDialog();
+            }}
+          />
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setProfileDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={submitProfileDialog}>
+              {editingProfileId ? "Rename" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </ThemeProvider>
   );
 }
