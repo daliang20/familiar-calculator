@@ -25,6 +25,20 @@ type DiceState = {
   source: "dice" | "total";
 };
 
+export type DiceModifier = {
+  id: string;
+  multiplier: number;
+  diceTotal: number;
+  enabled: boolean;
+  favorite?: boolean;
+};
+
+export type Profile = {
+  id: string;
+  name: string;
+  modifiers: DiceModifier[];
+};
+
 function App() {
   const [stringTotal, setStringTotal] = useState("");
   const [targetToBeat, setTargetToBeat] = useState("");
@@ -44,9 +58,37 @@ function App() {
     }
   }, [state.dice, state.total, state.source]);
 
-  const [modifiers, setModifiers] = useState<
-    { multiplier: number; diceTotal: number; enabled: boolean }[]
-  >([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
+
+  const activeProfile = profiles.find((p) => p.id === activeProfileId);
+  const modifiers = activeProfile?.modifiers ?? [];
+  useEffect(() => {
+    if (profiles.length === 0) {
+      const id = crypto.randomUUID();
+      setProfiles([
+        {
+          id,
+          name: "Default",
+          modifiers: [],
+        },
+      ]);
+      setActiveProfileId(id);
+    }
+  }, [profiles]);
+  function updateActiveProfileModifiers(
+    updater: (mods: DiceModifier[]) => DiceModifier[],
+  ) {
+    if (!activeProfileId) return;
+
+    setProfiles((prev) =>
+      prev.map((profile) =>
+        profile.id === activeProfileId
+          ? { ...profile, modifiers: updater(profile.modifiers) }
+          : profile,
+      ),
+    );
+  }
 
   const labels = ["Dice 1", "Dice 2", "Dice 3"];
 
@@ -130,7 +172,7 @@ function App() {
 
           <DiceModifiersTable
             modifiers={modifiers}
-            setModifiers={setModifiers}
+            setModifiers={updateActiveProfileModifiers}
           />
         </div>
 
