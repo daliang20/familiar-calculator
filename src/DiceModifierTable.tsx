@@ -7,7 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus, Trash2, Diff, X } from "lucide-react";
+import { Plus, Minus, Trash2, Diff, X, Star } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   InputGroup,
@@ -18,101 +18,111 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 type Modifier = {
+  id: string;
   multiplier: number;
   diceTotal: number;
   enabled: boolean;
+  favorite?: boolean;
 };
 
 type DiceModifiersTableProps = {
   modifiers: Modifier[];
-  setModifiers: (modifiers: Modifier[]) => void;
+  setModifiers: (updater: (prev: Modifier[]) => Modifier[]) => void;
 };
 
 export function DiceModifiersTable({
   modifiers,
   setModifiers,
 }: DiceModifiersTableProps) {
-  const [diceInputs, setDiceInputs] = useState<string[]>(
-    modifiers.map((m) => String(m.diceTotal))
-  );
-  const [multiplierInputs, setMultiplierInputs] = useState<string[]>(
-    modifiers.map((m) => String(m.multiplier))
-  );
+  const [diceInputs, setDiceInputs] = useState<Record<string, string>>({});
+  const [multiplierInputs, setMultiplierInputs] = useState<
+    Record<string, string>
+  >({});
 
-  const diceDebounceRefs = useRef<Record<number, number>>({});
-  const multDebounceRefs = useRef<Record<number, number>>({});
-  const editingRef = useRef<Record<number, boolean>>({});
+  const diceDebounceRefs = useRef<Record<string, number>>({});
+  const multDebounceRefs = useRef<Record<string, number>>({});
+  const editingRef = useRef<Record<string, boolean>>({});
+
+  /* ---------------- Sync inputs when modifiers change ---------------- */
 
   useEffect(() => {
-    setDiceInputs((prev) =>
-      prev.map((v, i) =>
-        editingRef.current[i] ? v : String(modifiers[i]?.diceTotal ?? 0)
-      )
-    );
+    setDiceInputs((prev) => {
+      const next = { ...prev };
+      modifiers.forEach((m) => {
+        if (!editingRef.current[m.id]) {
+          next[m.id] = String(m.diceTotal);
+        }
+      });
+      return next;
+    });
 
-    setMultiplierInputs((prev) =>
-      prev.map((v, i) =>
-        editingRef.current[i] ? v : String(modifiers[i]?.multiplier ?? 0)
-      )
-    );
+    setMultiplierInputs((prev) => {
+      const next = { ...prev };
+      modifiers.forEach((m) => {
+        if (!editingRef.current[m.id]) {
+          next[m.id] = String(m.multiplier);
+        }
+      });
+      return next;
+    });
   }, [modifiers]);
 
-  const updateModifier = (index: number, value: Partial<Modifier>) => {
-    setModifiers(
-      modifiers.map((m, i) => (i === index ? { ...m, ...value } : m))
+  /* ---------------- Helpers ---------------- */
+
+  const updateModifier = (id: string, value: Partial<Modifier>) => {
+    setModifiers((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, ...value } : m)),
     );
   };
 
-  const clearDiceDebounce = (index: number) => {
-    clearTimeout(diceDebounceRefs.current[index]);
-    delete diceDebounceRefs.current[index];
+  const clearDiceDebounce = (id: string) => {
+    clearTimeout(diceDebounceRefs.current[id]);
+    delete diceDebounceRefs.current[id];
   };
 
-  const clearMultDebounce = (index: number) => {
-    clearTimeout(multDebounceRefs.current[index]);
-    delete multDebounceRefs.current[index];
+  const clearMultDebounce = (id: string) => {
+    clearTimeout(multDebounceRefs.current[id]);
+    delete multDebounceRefs.current[id];
   };
 
   /* ---------------- Dice Total ---------------- */
 
-  const commitDice = (index: number, value: number) => {
-    clearDiceDebounce(index);
-    editingRef.current[index] = false;
-    updateModifier(index, { diceTotal: value });
-    setDiceInputs((p) => p.map((x, i) => (i === index ? String(value) : x)));
+  const commitDice = (id: string, value: number) => {
+    clearDiceDebounce(id);
+    editingRef.current[id] = false;
+    updateModifier(id, { diceTotal: value });
+    setDiceInputs((p) => ({ ...p, [id]: String(value) }));
   };
 
-  const scheduleDiceCommit = (index: number, value: string) => {
-    clearDiceDebounce(index);
+  const scheduleDiceCommit = (id: string, value: string) => {
+    clearDiceDebounce(id);
 
-    diceDebounceRefs.current[index] = window.setTimeout(() => {
+    diceDebounceRefs.current[id] = window.setTimeout(() => {
       if (value === "" || value === "-") return;
       const num = Number(value);
       if (!isNaN(num)) {
-        updateModifier(index, { diceTotal: num });
+        updateModifier(id, { diceTotal: num });
       }
     }, 250);
   };
 
   /* ---------------- Multiplier ---------------- */
 
-  const commitMultiplier = (index: number, value: number) => {
-    clearMultDebounce(index);
-    editingRef.current[index] = false;
-    updateModifier(index, { multiplier: value });
-    setMultiplierInputs((p) =>
-      p.map((x, i) => (i === index ? String(value) : x))
-    );
+  const commitMultiplier = (id: string, value: number) => {
+    clearMultDebounce(id);
+    editingRef.current[id] = false;
+    updateModifier(id, { multiplier: value });
+    setMultiplierInputs((p) => ({ ...p, [id]: String(value) }));
   };
 
-  const scheduleMultiplierCommit = (index: number, value: string) => {
-    clearMultDebounce(index);
+  const scheduleMultiplierCommit = (id: string, value: string) => {
+    clearMultDebounce(id);
 
-    multDebounceRefs.current[index] = window.setTimeout(() => {
+    multDebounceRefs.current[id] = window.setTimeout(() => {
       if (value === "") return;
       const num = Number(value);
       if (!isNaN(num) && num >= 0) {
-        updateModifier(index, { multiplier: num });
+        updateModifier(id, { multiplier: num });
       }
     }, 250);
   };
@@ -120,23 +130,40 @@ export function DiceModifiersTable({
   /* ---------------- Table Actions ---------------- */
 
   const addModifier = () => {
-    setModifiers([
-      ...modifiers,
-      { multiplier: 0, diceTotal: 0, enabled: true },
+    const id = crypto.randomUUID();
+
+    setModifiers((prev) => [
+      ...prev,
+      { id, multiplier: 0, diceTotal: 0, enabled: true },
     ]);
-    setDiceInputs((p) => [...p, "0"]);
-    setMultiplierInputs((p) => [...p, "0"]);
+
+    setDiceInputs((p) => ({ ...p, [id]: "0" }));
+    setMultiplierInputs((p) => ({ ...p, [id]: "0" }));
   };
 
-  const removeModifier = (index: number) => {
-    setModifiers(modifiers.filter((_, i) => i !== index));
-    setDiceInputs((p) => p.filter((_, i) => i !== index));
-    setMultiplierInputs((p) => p.filter((_, i) => i !== index));
+  const removeModifier = (id: string) => {
+    setModifiers((prev) => {
+      const target = prev.find((m) => m.id === id);
+      if (target?.favorite) return prev;
+      return prev.filter((m) => m.id !== id);
+    });
 
-    delete editingRef.current[index];
-    clearDiceDebounce(index);
-    clearMultDebounce(index);
+    setDiceInputs((p) => {
+      const { [id]: _, ...rest } = p;
+      return rest;
+    });
+
+    setMultiplierInputs((p) => {
+      const { [id]: _, ...rest } = p;
+      return rest;
+    });
+
+    delete editingRef.current[id];
+    clearDiceDebounce(id);
+    clearMultDebounce(id);
   };
+
+  /* ---------------- Render ---------------- */
 
   return (
     <div className="flex flex-col gap-4">
@@ -147,7 +174,7 @@ export function DiceModifiersTable({
               <TableHead className="w-[80px] text-center">Enabled</TableHead>
               <TableHead>Dice Total</TableHead>
               <TableHead>Multiplier</TableHead>
-              <TableHead className="w-[50px]" />
+              <TableHead className="w-[90px]" />
             </TableRow>
           </TableHeader>
 
@@ -162,14 +189,16 @@ export function DiceModifiersTable({
                 </TableCell>
               </TableRow>
             ) : (
-              modifiers.map((modifier, index) => (
-                <TableRow key={index}>
+              modifiers.map((modifier) => (
+                <TableRow key={modifier.id}>
                   {/* Enabled */}
                   <TableCell className="text-center">
                     <Checkbox
                       checked={modifier.enabled}
                       onCheckedChange={(checked) =>
-                        updateModifier(index, { enabled: checked === true })
+                        updateModifier(modifier.id, {
+                          enabled: checked === true,
+                        })
                       }
                     />
                   </TableCell>
@@ -180,25 +209,26 @@ export function DiceModifiersTable({
                       <InputGroupAddon>
                         <Diff />
                       </InputGroupAddon>
+
                       <InputGroupAddon align="inline-end">
                         <InputGroupButton
-                          variant={"outline"}
+                          variant="outline"
                           className="rounded-full"
                           size="icon-xs"
                           disabled={!modifier.enabled}
                           onClick={() =>
-                            commitDice(index, modifier.diceTotal + 1)
+                            commitDice(modifier.id, modifier.diceTotal + 1)
                           }
                         >
                           <Plus className="h-4 w-4" />
                         </InputGroupButton>
                         <InputGroupButton
-                          variant={"outline"}
+                          variant="outline"
                           className="rounded-full"
                           size="icon-xs"
                           disabled={!modifier.enabled}
                           onClick={() =>
-                            commitDice(index, modifier.diceTotal - 1)
+                            commitDice(modifier.id, modifier.diceTotal - 1)
                           }
                         >
                           <Minus className="h-4 w-4" />
@@ -209,23 +239,25 @@ export function DiceModifiersTable({
                         type="text"
                         inputMode="numeric"
                         disabled={!modifier.enabled}
-                        value={diceInputs[index]}
+                        value={diceInputs[modifier.id] ?? ""}
                         onChange={(e) => {
                           const v = e.target.value;
-                          editingRef.current[index] = true;
+                          editingRef.current[modifier.id] = true;
 
                           if (v === "" || v === "-") {
-                            setDiceInputs((p) =>
-                              p.map((x, i) => (i === index ? v : x))
-                            );
+                            setDiceInputs((p) => ({
+                              ...p,
+                              [modifier.id]: v,
+                            }));
                             return;
                           }
 
                           if (/^-?\d+$/.test(v)) {
-                            setDiceInputs((p) =>
-                              p.map((x, i) => (i === index ? v : x))
-                            );
-                            scheduleDiceCommit(index, v);
+                            setDiceInputs((p) => ({
+                              ...p,
+                              [modifier.id]: v,
+                            }));
+                            scheduleDiceCommit(modifier.id, v);
                           }
                         }}
                       />
@@ -238,6 +270,7 @@ export function DiceModifiersTable({
                       <InputGroupAddon>
                         <X />
                       </InputGroupAddon>
+
                       <InputGroupAddon align="inline-end">
                         <InputGroupButton
                           size="icon-xs"
@@ -246,8 +279,8 @@ export function DiceModifiersTable({
                           disabled={!modifier.enabled}
                           onClick={() =>
                             commitMultiplier(
-                              index,
-                              +(modifier.multiplier + 0.2).toFixed(3)
+                              modifier.id,
+                              +(modifier.multiplier + 0.2).toFixed(3),
                             )
                           }
                         >
@@ -260,11 +293,11 @@ export function DiceModifiersTable({
                           disabled={!modifier.enabled}
                           onClick={() =>
                             commitMultiplier(
-                              index,
+                              modifier.id,
                               Math.max(
                                 0,
-                                +(modifier.multiplier - 0.2).toFixed(3)
-                              )
+                                +(modifier.multiplier - 0.2).toFixed(3),
+                              ),
                             )
                           }
                         >
@@ -276,36 +309,56 @@ export function DiceModifiersTable({
                         type="text"
                         inputMode="decimal"
                         disabled={!modifier.enabled}
-                        value={multiplierInputs[index]}
+                        value={multiplierInputs[modifier.id] ?? ""}
                         onChange={(e) => {
                           const v = e.target.value;
-                          editingRef.current[index] = true;
+                          editingRef.current[modifier.id] = true;
 
-                          // allow empty or trailing dot
                           if (v === "" || v.endsWith(".")) {
-                            setMultiplierInputs((p) =>
-                              p.map((x, i) => (i === index ? v : x))
-                            );
+                            setMultiplierInputs((p) => ({
+                              ...p,
+                              [modifier.id]: v,
+                            }));
                             return;
                           }
 
                           if (/^\d*\.?\d*$/.test(v)) {
-                            setMultiplierInputs((p) =>
-                              p.map((x, i) => (i === index ? v : x))
-                            );
-                            scheduleMultiplierCommit(index, v);
+                            setMultiplierInputs((p) => ({
+                              ...p,
+                              [modifier.id]: v,
+                            }));
+                            scheduleMultiplierCommit(modifier.id, v);
                           }
                         }}
                       />
                     </InputGroup>
                   </TableCell>
 
-                  {/* Remove */}
-                  <TableCell>
+                  {/* Actions */}
+                  <TableCell className="flex gap-1 justify-end">
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => removeModifier(index)}
+                      onClick={() =>
+                        updateModifier(modifier.id, {
+                          favorite: !modifier.favorite,
+                        })
+                      }
+                    >
+                      <Star
+                        className={`h-4 w-4 ${
+                          modifier.favorite
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-muted-foreground"
+                        }`}
+                      />
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={modifier.favorite}
+                      onClick={() => removeModifier(modifier.id)}
                       className="h-8 w-8 text-muted-foreground hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />
